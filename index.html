@@ -1,0 +1,156 @@
+<!doctype html>
+<html> 
+ <head> 
+  <title>Kool - A webapp that lets you upload,download your important files</title> 
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    /* Cool Upload Button Styles */
+    .cool-upload-button {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: #9b59b6;
+      color: #ffffff;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s ease-in-out, transform 0.2s ease;
+    }
+
+    .cool-upload-button:hover {
+      background-color: #8e44ad;
+      transform: scale(1.05);
+    }
+
+    .cool-upload-button:active {
+      background-color: #9b49b6;
+      transform: scale(0.95);
+      box-shadow: none;
+    }
+
+    /* Hide the default file input */
+    #fileInput {
+      display: none;
+    }
+
+    /* Progress Bar Styles */
+    .progress-container {
+      display: none;
+      margin-top: 20px;
+    }
+
+    #progressBar {
+      width: 100%;
+    }
+
+    #progressText {
+      margin-top: 10px;
+    }
+
+    /* Success Container Styles */
+    .success-container {
+      display: none;
+      margin-top: 20px;
+    }
+
+    #downloadButton {
+      padding: 12px 24px;
+      background-color: #2ecc71;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #downloadButton:hover {
+      background-color: #27ae60;
+    }
+
+    #downloadButton:active {
+      background-color: #24a452;
+    }
+  </style> 
+ </head> 
+ <body> 
+  <h1>
+    <img src="kool.png">  
+      
+  </h1> <!-- Upload Button with Cool Decoration --> <label for="fileInput" class="cool-upload-button" id="uploadButton">Upload File</label> 
+  <input type="file" id="fileInput"> <!-- Progress Bar --> 
+  <div class="progress-container" id="progressContainer"> <progress id="progressBar" value="0" max="100"></progress> <span id="progressText">0%</span> 
+  </div> <!-- Success Container --> 
+  <div class="success-container" id="successContainer"> <button id="downloadButton">Download File</button> 
+  </div> 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const uploadButton = document.getElementById('uploadButton');
+      const fileInput = document.getElementById('fileInput');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      const successContainer = document.getElementById('successContainer');
+      const downloadButton = document.getElementById('downloadButton');
+
+      let folderName = null;
+
+      uploadButton.addEventListener('click', () => {
+        if (!uploadButton.disabled) {
+          fileInput.click();
+        }
+      });
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+          const fileName = fileInput.files[0].name;
+          uploadButton.textContent = `Upload ${fileName}`;
+        }
+      });
+
+      fileInput.addEventListener('input', () => {
+        if (fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          const formData = new FormData();
+          formData.append('file', file);
+
+          uploadButton.disabled = true; // Disable the button during upload
+
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', 'upload.php', true);
+
+          xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+              const percent = (event.loaded / event.total) * 100;
+              progressBar.value = percent;
+              progressText.textContent = `${percent.toFixed(2)}%`;
+            }
+          });
+
+          xhr.onload = () => {
+            uploadButton.disabled = false; // Enable the button after upload
+            if (xhr.status === 200) {
+              folderName = xhr.responseText;
+              progressContainer.style.display = 'none';
+              successContainer.style.display = 'block';
+            } else {
+              alert('File upload failed.');
+              progressContainer.style.display = 'none';
+            }
+          };
+
+          xhr.send(formData);
+          progressContainer.style.display = 'block';
+        }
+      });
+
+      downloadButton.addEventListener('click', () => {
+        if (folderName) {
+          window.open(`http://www.kool.infinityfreeapp.com/${folderName}`, '_blank');
+        }
+      });
+    });
+  </script> 
+ 
+</body></html>
